@@ -294,10 +294,19 @@ fn extract_version(raw: &str) -> String {
 }
 
 /// 尝试直接执行命令获取版本
-#[cfg(not(target_os = "windows"))]
+#[allow(dead_code)]
 fn try_get_version(tool: &str) -> (Option<String>, Option<String>) {
     use std::process::Command;
 
+    #[cfg(target_os = "windows")]
+    let output = {
+        Command::new("cmd")
+            .args(["/C", &format!("{tool} --version")])
+            .creation_flags(CREATE_NO_WINDOW)
+            .output()
+    };
+
+    #[cfg(not(target_os = "windows"))]
     let output = {
         let shell = std::env::var("SHELL")
             .ok()
@@ -552,9 +561,21 @@ fn opencode_extra_search_paths(
     paths
 }
 
-#[cfg(not(target_os = "windows"))]
+#[allow(dead_code)]
 fn tool_executable_candidates(tool: &str, dir: &Path) -> Vec<std::path::PathBuf> {
-    vec![dir.join(tool)]
+    #[cfg(target_os = "windows")]
+    {
+        vec![
+            dir.join(format!("{tool}.cmd")),
+            dir.join(format!("{tool}.exe")),
+            dir.join(tool),
+        ]
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    {
+        vec![dir.join(tool)]
+    }
 }
 
 /// 扫描常见路径查找 CLI
@@ -1709,6 +1730,22 @@ mod tests {
         let candidates = tool_executable_candidates("opencode", &dir);
 
         assert_eq!(candidates, vec![PathBuf::from("/usr/local/bin/opencode")]);
+    }
+
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn tool_executable_candidates_windows_includes_cmd_exe_and_plain_name() {
+        let dir = PathBuf::from("C:\\tools");
+        let candidates = tool_executable_candidates("opencode", &dir);
+
+        assert_eq!(
+            candidates,
+            vec![
+                PathBuf::from("C:\\tools\\opencode.cmd"),
+                PathBuf::from("C:\\tools\\opencode.exe"),
+                PathBuf::from("C:\\tools\\opencode"),
+            ]
+        );
     }
 
     #[test]
