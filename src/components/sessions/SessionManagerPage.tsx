@@ -39,7 +39,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
@@ -564,9 +564,6 @@ export function SessionManagerPage({ appId }: { appId: string }) {
                             </div>
                           </PopoverContent>
                         </Popover>
-                        <CardTitle className="text-sm font-medium whitespace-nowrap">
-                          {t("sessionManager.sessionList")}
-                        </CardTitle>
                         <Badge variant="secondary" className="text-xs">
                           {filteredSessions.length}
                         </Badge>
